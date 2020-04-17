@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,20 +18,18 @@
 
 package org.apache.zookeeper.server;
 
-
-
+import java.util.concurrent.atomic.AtomicLong;
 import org.apache.zookeeper.common.Time;
 import org.apache.zookeeper.server.metric.AvgMinMaxCounter;
 import org.apache.zookeeper.server.quorum.BufferStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * Basic Server Statistics
  */
 public class ServerStats {
+
     private static final Logger LOG = LoggerFactory.getLogger(ServerStats.class);
 
     private final AtomicLong packetsSent = new AtomicLong();
@@ -39,7 +37,7 @@ public class ServerStats {
 
     private final AvgMinMaxCounter requestLatency = new AvgMinMaxCounter("request_latency");
 
-    private AtomicLong fsyncThresholdExceedCount = new AtomicLong(0);
+    private final AtomicLong fsyncThresholdExceedCount = new AtomicLong(0);
 
     private final BufferStats clientResponseStats = new BufferStats();
 
@@ -47,18 +45,20 @@ public class ServerStats {
     private final long startTime = Time.currentElapsedTime();
 
     public interface Provider {
-        public long getOutstandingRequests();
-        public long getLastProcessedZxid();
-        public String getState();
-        public int getNumAliveConnections();
-        public long getDataDirSize();
-        public long getLogDirSize();
+
+        long getOutstandingRequests();
+        long getLastProcessedZxid();
+        String getState();
+        int getNumAliveConnections();
+        long getDataDirSize();
+        long getLogDirSize();
+
     }
-    
+
     public ServerStats(Provider provider) {
         this.provider = provider;
     }
-    
+
     // getters
     public long getMinLatency() {
         return requestLatency.getMin();
@@ -75,8 +75,8 @@ public class ServerStats {
     public long getOutstandingRequests() {
         return provider.getOutstandingRequests();
     }
-    
-    public long getLastProcessedZxid(){
+
+    public long getLastProcessedZxid() {
         return provider.getLastProcessedZxid();
     }
 
@@ -87,7 +87,7 @@ public class ServerStats {
     public long getLogDirSize() {
         return provider.getLogDirSize();
     }
-    
+
     public long getPacketsReceived() {
         return packetsReceived.get();
     }
@@ -99,10 +99,10 @@ public class ServerStats {
     public String getServerState() {
         return provider.getState();
     }
-    
+
     /** The number of client connections alive to this server */
     public int getNumAliveClientConnections() {
-    	return provider.getNumAliveConnections();
+        return provider.getNumAliveConnections();
     }
 
     public long getUptime() {
@@ -114,17 +114,16 @@ public class ServerStats {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Latency min/avg/max: " + getMinLatency() + "/"
-                + getAvgLatency() + "/" + getMaxLatency() + "\n");
+        sb.append("Latency min/avg/max: " + getMinLatency() + "/" + getAvgLatency() + "/" + getMaxLatency() + "\n");
         sb.append("Received: " + getPacketsReceived() + "\n");
         sb.append("Sent: " + getPacketsSent() + "\n");
         sb.append("Connections: " + getNumAliveClientConnections() + "\n");
 
         if (provider != null) {
             sb.append("Outstanding: " + getOutstandingRequests() + "\n");
-            sb.append("Zxid: 0x"+ Long.toHexString(getLastProcessedZxid())+ "\n");
+            sb.append("Zxid: 0x" + Long.toHexString(getLastProcessedZxid()) + "\n");
         }
         sb.append("Mode: " + getServerState() + "\n");
         return sb.toString();
@@ -142,10 +141,10 @@ public class ServerStats {
         requestLatency.addDataPoint(latency);
         if (request.getHdr() != null) {
             // Only quorum request should have header
-            ServerMetrics.UPDATE_LATENCY.add(latency);
+            ServerMetrics.getMetrics().UPDATE_LATENCY.add(latency);
         } else {
             // All read request should goes here
-            ServerMetrics.READ_LATENCY.add(latency);
+            ServerMetrics.getMetrics().READ_LATENCY.add(latency);
         }
     }
 
@@ -165,7 +164,7 @@ public class ServerStats {
         packetsSent.incrementAndGet();
     }
 
-    public void resetRequestCounters(){
+    public void resetRequestCounters() {
         packetsReceived.set(0);
         packetsSent.set(0);
     }
@@ -186,7 +185,7 @@ public class ServerStats {
         resetLatency();
         resetRequestCounters();
         clientResponseStats.reset();
-        ServerMetrics.resetAll();
+        ServerMetrics.getMetrics().resetAll();
     }
 
     public void updateClientResponseSize(int size) {
@@ -196,4 +195,5 @@ public class ServerStats {
     public BufferStats getClientResponseStats() {
         return clientResponseStats;
     }
+
 }

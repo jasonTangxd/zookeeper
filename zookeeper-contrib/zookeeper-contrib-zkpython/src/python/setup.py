@@ -16,16 +16,16 @@
 
 from distutils.core import setup, Extension
 
-zookeeper_basedir = "../../../"
+zookeeper_basedir = "../../"
 
 zookeepermodule = Extension("zookeeper",
-                            sources=["zookeeper-client/zookeeper-client-c/zookeeper.c"],
+                            sources=["src/c/zookeeper.c"],
                             include_dirs=[zookeeper_basedir + "/zookeeper-client/zookeeper-client-c/include",
-                                          zookeeper_basedir + "/build/c",
+                                          zookeeper_basedir + "/zookeeper-client/zookeeper-client-c/target/c",
                                           zookeeper_basedir + "/zookeeper-client/zookeeper-client-c/generated"],
                             libraries=["zookeeper_mt"],
                             library_dirs=[zookeeper_basedir + "/zookeeper-client/zookeeper-client-c/.libs/",
-                                          zookeeper_basedir + "/build/c/.libs/",
+                                          zookeeper_basedir + "/zookeeper-client/zookeeper-client-c/target/c/.libs/",
                                           zookeeper_basedir + "/build/test/test-cppunit/.libs",
                                           "/usr/local/lib"
                                           ])

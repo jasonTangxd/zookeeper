@@ -68,7 +68,13 @@ then
     echo "ZooKeeper remote JMX authenticate set to $JMXAUTH" >&2
     echo "ZooKeeper remote JMX ssl set to $JMXSSL" >&2
     echo "ZooKeeper remote JMX log4j set to $JMXLOG4J" >&2
-    ZOOMAIN="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMXPORT -Dcom.sun.management.jmxremote.authenticate=$JMXAUTH -Dcom.sun.management.jmxremote.ssl=$JMXSSL -Dzookeeper.jmx.log4j.disable=$JMXLOG4J org.apache.zookeeper.server.quorum.QuorumPeerMain"
+    if [ "x$JMXHOSTNAME" = "x" ]
+    then
+      ZOOMAIN="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMXPORT -Dcom.sun.management.jmxremote.authenticate=$JMXAUTH -Dcom.sun.management.jmxremote.ssl=$JMXSSL -Dzookeeper.jmx.log4j.disable=$JMXLOG4J org.apache.zookeeper.server.quorum.QuorumPeerMain"
+    else
+      echo "ZooKeeper remote JMX Hostname set to $JMXHOSTNAME" >&2
+      ZOOMAIN="-Dcom.sun.management.jmxremote -Djava.rmi.server.hostname=$JMXHOSTNAME -Dcom.sun.management.jmxremote.port=$JMXPORT -Dcom.sun.management.jmxremote.authenticate=$JMXAUTH -Dcom.sun.management.jmxremote.ssl=$JMXSSL -Dzookeeper.jmx.log4j.disable=$JMXLOG4J org.apache.zookeeper.server.quorum.QuorumPeerMain"
+    fi
   fi
 else
     echo "JMX disabled by user request" >&2
@@ -212,9 +218,14 @@ stop)
     else
       $KILL $(cat "$ZOOPIDFILE")
       rm "$ZOOPIDFILE"
+      sleep 1
       echo STOPPED
     fi
     exit 0
+    ;;
+version)
+    ZOOMAIN=org.apache.zookeeper.version.VersionInfoMain
+    $JAVA -cp "$CLASSPATH" $ZOOMAIN 2> /dev/null
     ;;
 restart)
     shift
@@ -272,6 +283,6 @@ status)
     fi
     ;;
 *)
-    echo "Usage: $0 [--config <conf-dir>] {start|start-foreground|stop|restart|status|print-cmd}" >&2
+    echo "Usage: $0 [--config <conf-dir>] {start|start-foreground|stop|version|restart|status|print-cmd}" >&2
 
 esac
